@@ -8,6 +8,7 @@ public class Dog {
     private String name;
     private int age;
     private String favoriteBone;
+    private Person owner;
 
     public String getName() {
         return name;
@@ -32,4 +33,13 @@ public class Dog {
     public void setFavoriteBone(String favoriteBone) {
         this.favoriteBone = favoriteBone;
     }
+
+    public Person getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Person owner) {
+        this.owner = owner;
+    }
+
 }
