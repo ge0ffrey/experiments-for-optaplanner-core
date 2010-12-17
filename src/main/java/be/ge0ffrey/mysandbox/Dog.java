@@ -7,6 +7,7 @@ public class Dog {
 
     private String name;
     private int age;
+    private String favoriteBone;
 
     public String getName() {
         return name;
@@ -24,4 +25,11 @@ public class Dog {
         this.age = age;
     }
 
+    public String getFavoriteBone() {
+        return favoriteBone;
+    }
+
+    public void setFavoriteBone(String favoriteBone) {
+        this.favoriteBone = favoriteBone;
+    }
 }
