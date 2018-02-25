@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class MultithreadExperiment {
+public class ProposalA {
 
     public static final int THREAD_COUNT = 4;
 
@@ -36,8 +36,10 @@ public class MultithreadExperiment {
 
     static class Parent implements Runnable {
 
-        private BlockingQueue<String> moveQueue = new ArrayBlockingQueue<>(MOVE_COUNT);
-        private BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(MOVE_COUNT);
+        public static final int BUFFER_SIZE = THREAD_COUNT * 3;
+
+        private BlockingQueue<String> moveQueue = new ArrayBlockingQueue<>(BUFFER_SIZE);
+        private BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(BUFFER_SIZE);
 
         private Random random = new Random(37);
 
@@ -45,18 +47,13 @@ public class MultithreadExperiment {
         }
 
         public void run() {
-            for (int i = 0; i < MOVE_COUNT; i++) {
+            int moveIndex = 0;
+            for (int i = 0; i < BUFFER_SIZE; i++) {
                 int move = random.nextInt(1000);
-                try {
-                    moveQueue.put(Integer.toString(move));
-                } catch (InterruptedException e) {
-                    throw new IllegalStateException("Parent thread interrupted.", e);
-                }
+                moveQueue.add(Integer.toString(move));
+                moveIndex++;
             }
-            for (int i = 0; i < THREAD_COUNT; i++) {
-                moveQueue.add("stop");
-            }
-            for (int i = 0; i < MOVE_COUNT; i++) {
+            while (true) {
                 int score;
                 try {
                     score = Integer.parseInt(responseQueue.take());
@@ -64,6 +61,17 @@ public class MultithreadExperiment {
                     throw new IllegalStateException("Parent thread interrupted.", e);
                 }
                 System.out.print(score);
+                if (moveIndex >= MOVE_COUNT) {
+                    // Winner winner chicken dinner
+                    break;
+                }
+                int move = random.nextInt(1000);
+                moveQueue.add(Integer.toString(move));
+                moveIndex++;
+
+            }
+            for (int i = 0; i < THREAD_COUNT; i++) {
+                moveQueue.add("stop");
             }
         }
     }
