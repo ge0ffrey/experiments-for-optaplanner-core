@@ -15,10 +15,10 @@ public class ProposalA {
     public static void main(String[] args) {
         System.out.println("Bootstrapping...");
         long start = System.currentTimeMillis();
-        MultithreadExperiment.Parent parent  = new MultithreadExperiment.Parent();
+        Parent parent  = new Parent();
         List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
         for (int i = 0; i < THREAD_COUNT; i++) {
-            MultithreadExperiment.Child child = new MultithreadExperiment.Child(parent, i);
+            Child child = new Child(parent, i);
             Thread thread = new Thread(child);
             threadList.add(thread);
             thread.start();
@@ -31,7 +31,7 @@ public class ProposalA {
                 throw new IllegalStateException("Join interrupted.", e);
             }
         }
-        System.out.printf("\nDuration: %,d ms\n", System.currentTimeMillis() - start);
+        System.out.printf("\nDuration: %,.3f moves per second\n", MOVE_COUNT * 1000.0 / (System.currentTimeMillis() - start));
     }
 
     static class Parent implements Runnable {

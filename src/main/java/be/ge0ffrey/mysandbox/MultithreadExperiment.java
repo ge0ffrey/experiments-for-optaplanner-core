@@ -31,7 +31,7 @@ public class MultithreadExperiment {
                 throw new IllegalStateException("Join interrupted.", e);
             }
         }
-        System.out.printf("\nDuration: %,d ms\n", System.currentTimeMillis() - start);
+        System.out.printf("\nDuration: %,.3f moves per second\n", MOVE_COUNT * 1000.0 / (System.currentTimeMillis() - start));
     }
 
     static class Parent implements Runnable {
