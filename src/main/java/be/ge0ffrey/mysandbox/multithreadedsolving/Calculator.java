@@ -1,4 +1,4 @@
-package be.ge0ffrey.mysandbox;
+package be.ge0ffrey.mysandbox.multithreadedsolving;
 
 public class Calculator {
 

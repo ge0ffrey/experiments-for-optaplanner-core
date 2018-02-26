@@ -1,12 +1,14 @@
-package be.ge0ffrey.mysandbox;
+package be.ge0ffrey.mysandbox.multithreadedsolving;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class ProposalB {
+public class ProposalA {
 
     public static final int THREAD_COUNT = 4;
 
@@ -14,15 +16,13 @@ public class ProposalB {
     public static final int PULSE_FREQUENCY = 10_000;
 
     public static void main(String[] args) {
-        System.out.println("Proposal B\n");
+        System.out.println("Proposal A\n");
         System.out.printf("Running for %,d ms...\n", TIME_IN_MS);
         long start = System.currentTimeMillis();
-        List<Child> childList = new ArrayList<>(THREAD_COUNT);
-        Parent parent  = new Parent(childList);
+        Parent parent  = new Parent();
         List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
         for (int i = 0; i < THREAD_COUNT; i++) {
             Child child = new Child(parent, i);
-            childList.add(child);
             Thread thread = new Thread(child);
             threadList.add(thread);
             thread.start();
@@ -42,12 +42,12 @@ public class ProposalB {
 
         public static final int BUFFER_SIZE = THREAD_COUNT * 3;
 
+        private BlockingQueue<Wrapper> moveQueue = new ArrayBlockingQueue<>(BUFFER_SIZE);
+        private WrapperQueue responseQueue = new WrapperQueue(BUFFER_SIZE);
+
         private Random random = new Random(37);
 
-        private List<Child> childList;
-
-        public Parent(List<Child> childList) {
-            this.childList = childList;
+        public Parent() {
         }
 
         public void run() {
@@ -55,19 +55,18 @@ public class ProposalB {
             int moveIndex = 0;
             for (int i = 0; i < BUFFER_SIZE; i++) {
                 int move = random.nextInt(1000);
-                Child child = childList.get(moveIndex % childList.size());
-                child.moveQueue.add(Integer.toString(move));
+                moveQueue.add(new Wrapper(moveIndex, Integer.toString(move)));
                 moveIndex++;
             }
             StringBuilder trackRecord = new StringBuilder(10_000);
             while (true) {
-                Child child = childList.get(moveIndex % childList.size());
-                int score;
+                Wrapper wrapper;
                 try {
-                    score = Integer.parseInt(child.responseQueue.take());
+                    wrapper = responseQueue.take();
                 } catch (InterruptedException e) {
                     throw new IllegalStateException("Parent thread interrupted.", e);
                 }
+                int score = Integer.parseInt(wrapper.move);
                 if (moveIndex % PULSE_FREQUENCY == 0) {
                     trackRecord.append(score);
                     if (System.currentTimeMillis() >= start + TIME_IN_MS) {
@@ -76,12 +75,11 @@ public class ProposalB {
                     }
                 }
                 int move = random.nextInt(1000);
-                child.moveQueue.add(Integer.toString(move));
+                moveQueue.add(new Wrapper(moveIndex, Integer.toString(move)));
                 moveIndex++;
             }
             for (int i = 0; i < THREAD_COUNT; i++) {
-                Child child = childList.get(i % childList.size());
-                child.moveQueue.add("stop");
+                moveQueue.add(new Wrapper(-1, "stop"));
             }
             long duration = System.currentTimeMillis() - start;
             System.out.println("Track record: " + trackRecord);
@@ -90,9 +88,6 @@ public class ProposalB {
     }
 
     static class Child implements Runnable {
-
-        private BlockingQueue<String> moveQueue = new ArrayBlockingQueue<>(3);
-        private BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(3);
 
         private Parent parent;
         private int index;
@@ -106,25 +101,70 @@ public class ProposalB {
 
         public void run() {
             while (true) {
-                String moveString;
+                Wrapper wrapper;
                 try {
-                    moveString = moveQueue.take();
+                    wrapper = parent.moveQueue.take();
                 } catch (InterruptedException e) {
                     throw new IllegalStateException("Child thread (" + index + ") interrupted.", e);
                 }
-                if (moveString.equals("stop")) {
+                if (wrapper.move.equals("stop")) {
                     return;
                 }
-                int move = Integer.parseInt(moveString);
+                int move = Integer.parseInt(wrapper.move);
                 int response = (random.nextInt(100) + Calculator.calculateScore(move)) % 10;
                 try {
-                    responseQueue.put(Integer.toString(response));
+                    parent.responseQueue.put(new Wrapper(wrapper.moveIndex, Integer.toString(response)));
                 } catch (InterruptedException e) {
                     throw new IllegalStateException("Child thread (" + index + ") interrupted.", e);
                 }
             }
         }
 
+    }
+
+    static class Wrapper {
+        int moveIndex;
+        String move;
+
+        public Wrapper(int moveIndex, String move) {
+            this.moveIndex = moveIndex;
+            this.move = move;
+        }
+    }
+
+    static class WrapperQueue {
+
+        private BlockingQueue<Wrapper> innerQueue;
+        private Map<Integer, Wrapper> backlog;
+
+        private int searchMoveIndex = -1;
+
+        public WrapperQueue(int capacity) {
+            innerQueue = new ArrayBlockingQueue<>(capacity);
+            backlog = new HashMap<>(capacity);
+        }
+
+        public void put(Wrapper wrapper) throws InterruptedException {
+            innerQueue.put(wrapper);
+        }
+
+        public Wrapper take() throws InterruptedException {
+            searchMoveIndex++;
+            if (!backlog.isEmpty()) {
+                Wrapper wrapper = backlog.remove(searchMoveIndex);
+                if (wrapper != null) {
+                    return wrapper;
+                }
+            }
+            while (true) {
+                Wrapper wrapper = innerQueue.take();
+                if (wrapper.moveIndex == searchMoveIndex) {
+                    return wrapper;
+                } else {
+                    backlog.put(wrapper.moveIndex, wrapper);
+                }
+            }
+        }
     }
 
 }

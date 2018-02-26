@@ -1,4 +1,4 @@
-package be.ge0ffrey.mysandbox;
+package be.ge0ffrey.mysandbox.multithreadedsolving;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class MultithreadExperiment {
+public class FailedMultithreadExperiment {
 
     public static final int THREAD_COUNT = 4;
 
@@ -15,10 +15,10 @@ public class MultithreadExperiment {
     public static void main(String[] args) {
         System.out.println("Bootstrapping...");
         long start = System.currentTimeMillis();
-        MultithreadExperiment.Parent parent  = new MultithreadExperiment.Parent();
+        FailedMultithreadExperiment.Parent parent  = new FailedMultithreadExperiment.Parent();
         List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
         for (int i = 0; i < THREAD_COUNT; i++) {
-            MultithreadExperiment.Child child = new MultithreadExperiment.Child(parent, i);
+            FailedMultithreadExperiment.Child child = new FailedMultithreadExperiment.Child(parent, i);
             Thread thread = new Thread(child);
             threadList.add(thread);
             thread.start();
@@ -36,8 +36,8 @@ public class MultithreadExperiment {
 
     static class Parent implements Runnable {
 
-        private BlockingQueue<String> moveQueue = new ArrayBlockingQueue<>(MOVE_COUNT);
-        private BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(MOVE_COUNT);
+        private BlockingQueue<String> moveQueue = new ArrayBlockingQueue<>(THREAD_COUNT * 3); // TOD FIXME
+        private BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(THREAD_COUNT * 3);
 
         private Random random = new Random(37);
 
