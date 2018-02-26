@@ -1,6 +1,14 @@
-target
+/target
+/local
 
-*.ipr
-*.iws
-*.iml
-.idea
+# Eclipse, Netbeans and IntelliJ files
+/.*
+!.gitignore
+!.gitattributes
+/nbproject
+/*.ipr
+/*.iws
+/*.iml
+
+# Repository wide ignore mac DS_Store files
+.DS_Store

@@ -63,12 +63,13 @@ public class ProposalA {
             }
             StringBuilder trackRecord = new StringBuilder(10_000);
             while (true) {
-                int score;
+                Wrapper wrapper;
                 try {
-                    score = Integer.parseInt(responseQueue.take().move);
+                    wrapper = responseQueue.take();
                 } catch (InterruptedException e) {
                     throw new IllegalStateException("Parent thread interrupted.", e);
                 }
+                int score = Integer.parseInt(wrapper.move);
                 if (moveIndex % PULSE_FREQUENCY == 0) {
                     trackRecord.append(score);
                     if (System.currentTimeMillis() >= start + TIME_IN_MS) {
