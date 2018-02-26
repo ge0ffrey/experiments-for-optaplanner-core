@@ -92,23 +92,13 @@ public class MultithreadExperiment {
                     return;
                 }
                 int move = Integer.parseInt(moveString);
-                int response = calculateScore(move);
+                int response = (random.nextInt(100) + Calculator.calculateScore(move)) % 10;
                 try {
                     parent.responseQueue.put(Integer.toString(response));
                 } catch (InterruptedException e) {
                     throw new IllegalStateException("Child thread (" + index + ") interrupted.", e);
                 }
             }
-        }
-
-        public int calculateScore(int move) {
-            int score = (random.nextInt(100) + move) % 10;
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                throw new IllegalStateException("Child thread (" + index + ") interrupted.", e);
-            }
-            return score;
         }
 
     }

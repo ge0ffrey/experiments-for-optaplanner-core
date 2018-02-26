@@ -8,12 +8,12 @@ import java.util.concurrent.BlockingQueue;
 
 public class ProposalA {
 
-    public static final int THREAD_COUNT = 4;
+    public static final int THREAD_COUNT = 6;
 
-    public static final int MOVE_COUNT = 100_000;
+    public static final int TIME_IN_MS = 20_000;
 
     public static void main(String[] args) {
-        System.out.println("Bootstrapping...");
+        System.out.printf("Running for %,d ms...\n", TIME_IN_MS);
         long start = System.currentTimeMillis();
         Parent parent  = new Parent();
         List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
@@ -31,7 +31,7 @@ public class ProposalA {
                 throw new IllegalStateException("Join interrupted.", e);
             }
         }
-        System.out.printf("\nDuration: %,.3f moves per second\n", MOVE_COUNT * 1000.0 / (System.currentTimeMillis() - start));
+        System.out.printf("Duration (%,d ms).\n", (System.currentTimeMillis() - start));
     }
 
     static class Parent implements Runnable {
@@ -47,12 +47,14 @@ public class ProposalA {
         }
 
         public void run() {
+            long start = System.currentTimeMillis();
             int moveIndex = 0;
             for (int i = 0; i < BUFFER_SIZE; i++) {
                 int move = random.nextInt(1000);
                 moveQueue.add(Integer.toString(move));
                 moveIndex++;
             }
+            StringBuilder trackRecord = new StringBuilder(10_000);
             while (true) {
                 int score;
                 try {
@@ -60,19 +62,23 @@ public class ProposalA {
                 } catch (InterruptedException e) {
                     throw new IllegalStateException("Parent thread interrupted.", e);
                 }
-                System.out.print(score);
-                if (moveIndex >= MOVE_COUNT) {
-                    // Winner winner chicken dinner
-                    break;
+                if (moveIndex % 1_000 == 0) {
+                    trackRecord.append(score);
+                    if (System.currentTimeMillis() >= start + TIME_IN_MS) {
+                        // Winner winner chicken dinner
+                        break;
+                    }
                 }
                 int move = random.nextInt(1000);
                 moveQueue.add(Integer.toString(move));
                 moveIndex++;
-
             }
             for (int i = 0; i < THREAD_COUNT; i++) {
                 moveQueue.add("stop");
             }
+            long duration = System.currentTimeMillis() - start;
+            System.out.println("Track record: " + trackRecord);
+            System.out.printf("Duration (%,d ms), speed (%,d/second).\n", duration, moveIndex * 1000 / duration);
         }
     }
 
@@ -100,23 +106,13 @@ public class ProposalA {
                     return;
                 }
                 int move = Integer.parseInt(moveString);
-                int response = calculateScore(move);
+                int response = (random.nextInt(100) + Calculator.calculateScore(move)) % 10;
                 try {
                     parent.responseQueue.put(Integer.toString(response));
                 } catch (InterruptedException e) {
                     throw new IllegalStateException("Child thread (" + index + ") interrupted.", e);
                 }
             }
-        }
-
-        public int calculateScore(int move) {
-            int score = (random.nextInt(100) + move) % 10;
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                throw new IllegalStateException("Child thread (" + index + ") interrupted.", e);
-            }
-            return score;
         }
 
     }
