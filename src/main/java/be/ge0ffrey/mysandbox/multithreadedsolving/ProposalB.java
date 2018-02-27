@@ -42,7 +42,7 @@ public class ProposalB {
             threadList.add(thread);
             thread.start();
         }
-        int moveIndex = parent.runUntilMoveIndex();
+        long moveIndex = parent.runUntilMoveIndex();
         for (Thread thread : threadList) {
             try {
                 thread.join();
@@ -68,18 +68,18 @@ public class ProposalB {
             this.childList = childList;
         }
 
-        public int runUntilMoveIndex() {
+        public long runUntilMoveIndex() {
             long start = System.currentTimeMillis();
-            int moveIndex = 0;
+            long moveIndex = 0;
             for (int i = 0; i < bufferSize; i++) {
                 int move = random.nextInt(1000);
-                Child child = childList.get(moveIndex % childList.size());
+                Child child = childList.get((int) (moveIndex % childList.size()));
                 child.moveQueue.add(Integer.toString(move));
                 moveIndex++;
             }
             StringBuilder trackRecord = new StringBuilder(10_000);
             while (true) {
-                Child child = childList.get(moveIndex % childList.size());
+                Child child = childList.get((int) (moveIndex % childList.size()));
                 int score;
                 try {
                     score = Integer.parseInt(child.responseQueue.take());

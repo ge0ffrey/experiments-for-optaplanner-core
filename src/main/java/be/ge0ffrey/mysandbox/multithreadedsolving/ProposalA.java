@@ -43,7 +43,7 @@ public class ProposalA {
             threadList.add(thread);
             thread.start();
         }
-        int moveIndex = parent.runUntilMoveIndex();
+        long moveIndex = parent.runUntilMoveIndex();
         for (Thread thread : threadList) {
             try {
                 thread.join();
@@ -69,9 +69,9 @@ public class ProposalA {
         public Parent() {
         }
 
-        public int runUntilMoveIndex() {
+        public long runUntilMoveIndex() {
             long start = System.currentTimeMillis();
-            int moveIndex = 0;
+            long moveIndex = 0;
             for (int i = 0; i < bufferSize; i++) {
                 int move = random.nextInt(1000);
                 moveQueue.add(new Wrapper(moveIndex, Integer.toString(move)));
@@ -147,10 +147,10 @@ public class ProposalA {
     }
 
     static class Wrapper {
-        int moveIndex;
+        long moveIndex;
         String move;
 
-        public Wrapper(int moveIndex, String move) {
+        public Wrapper(long moveIndex, String move) {
             this.moveIndex = moveIndex;
             this.move = move;
         }
@@ -159,9 +159,9 @@ public class ProposalA {
     static class WrapperQueue {
 
         private BlockingQueue<Wrapper> innerQueue;
-        private Map<Integer, Wrapper> backlog;
+        private Map<Long, Wrapper> backlog;
 
-        private int searchMoveIndex = -1;
+        private long searchMoveIndex = -1;
 
         public WrapperQueue(int capacity) {
             innerQueue = new ArrayBlockingQueue<>(capacity);
