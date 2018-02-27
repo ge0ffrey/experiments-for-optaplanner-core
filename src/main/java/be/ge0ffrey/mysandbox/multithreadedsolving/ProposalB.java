@@ -99,7 +99,11 @@ public class ProposalB {
             }
             for (int i = 0; i < threadCount; i++) {
                 Child child = childList.get(i % childList.size());
-                child.moveQueue.add("stop");
+                try {
+                    child.moveQueue.put("stop");
+                } catch (InterruptedException e) {
+                    throw new IllegalStateException("Parent thread interrupted.", e);
+                }
             }
             System.out.println("  Track record: " + trackRecord);
             return moveIndex;

@@ -98,7 +98,11 @@ public class ProposalA {
                 moveIndex++;
             }
             for (int i = 0; i < threadCount; i++) {
-                moveQueue.add(new Wrapper(-1, "stop"));
+                try {
+                    moveQueue.put(new Wrapper(-1, "stop"));
+                } catch (InterruptedException e) {
+                    throw new IllegalStateException("Parent thread interrupted.", e);
+                }
             }
             System.out.println("  Track record: " + trackRecord);
             return moveIndex;
