@@ -72,6 +72,7 @@ public class FailedMultithreadExperiment {
 
         private Parent parent;
         private int index;
+        private Calculator calculator = new Calculator();
         private Random random;
 
         public Child(Parent parent, int index) {
@@ -92,7 +93,7 @@ public class FailedMultithreadExperiment {
                     return;
                 }
                 int move = Integer.parseInt(moveString);
-                int response = Calculator.calculateScore(random, move) % 10;
+                int response = calculator.calculateScore(random, move) % 10;
                 try {
                     parent.responseQueue.put(Integer.toString(response));
                 } catch (InterruptedException e) {

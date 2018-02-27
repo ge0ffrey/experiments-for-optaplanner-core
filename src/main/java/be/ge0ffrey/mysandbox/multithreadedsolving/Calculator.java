@@ -4,13 +4,31 @@ import java.util.Random;
 
 public class Calculator {
 
-    // TODO try 3_000, 30_000 and 300_000
-    private static final int LOOP_SIZE_MIN = 10_000;
-    private static final int LOOP_SIZE_MAX = 30_000;
-    private static final int LOOP_SIZE_DIFF = LOOP_SIZE_MAX - LOOP_SIZE_MIN;
+    private final int loopSizeMin;
+    private final int loopSizeMax;
+    private final int loopSizeDiff;
 
-    public static int calculateScore(Random random, int move) {
-        int loopSize = LOOP_SIZE_MIN + (int) (random.nextDouble() * LOOP_SIZE_DIFF);
+    public Calculator() {
+        this(10_000, 30_000);
+    }
+
+    public Calculator(int loopSizeMin, int loopSizeMax) {
+        this.loopSizeMin = loopSizeMin;
+        this.loopSizeMax = loopSizeMax;
+        loopSizeDiff = loopSizeMax - loopSizeMin;
+    }
+
+    public int getLoopSizeMin() {
+        return loopSizeMin;
+    }
+
+    public int getLoopSizeMax() {
+        return loopSizeMax;
+    }
+
+    public int calculateScore(Random random, int move) {
+        // The pow 10 is to have 90% end up near loopSizeMin
+        int loopSize = loopSizeMin + (int) (Math.pow(random.nextDouble(), 10) * loopSizeDiff);
         int score = move;
         for (int i = 0; i < loopSize; i++) {
             score += 100_000;
@@ -21,13 +39,14 @@ public class Calculator {
 
     // Used to fine tweak the LOOP_SIZE
     public static void main(String[] args) {
+        Calculator calculator = new Calculator();
         Random random = new Random();
         long TIME_IN_MS = 20_000;
         long end = System.currentTimeMillis() + TIME_IN_MS;
         long calculationCount = 0;
         long blackHole = 0;
         while (System.currentTimeMillis() < end) {
-            blackHole += calculateScore(random, (int) calculationCount);
+            blackHole += calculator.calculateScore(random, (int) calculationCount);
             calculationCount++;
         }
         long calcCountPerSecond = calculationCount / (TIME_IN_MS / 1000);

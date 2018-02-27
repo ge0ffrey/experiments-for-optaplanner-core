@@ -10,25 +10,40 @@ import java.util.concurrent.BlockingQueue;
 
 public class ProposalA {
 
-    // TODO try 4, 8, 16, 32, 64
-    public static final int THREAD_COUNT = 4;
-
-    public static final int TIME_IN_MS = 20_000;
     public static final int PULSE_FREQUENCY = 10_000;
 
     public static void main(String[] args) {
-        System.out.println("Proposal A\n");
-        System.out.printf("Running for %,d ms...\n", TIME_IN_MS);
+        new ProposalA().runAndReturnSpeed();
+    }
+
+    private final int threadCount;
+    private final int timeInMs;
+    private Calculator calculator;
+
+    private ProposalA() {
+        this(4, 20_000, new Calculator());
+    }
+
+    public ProposalA(int threadCount, int timeInMs, Calculator calculator) {
+        this.threadCount = threadCount;
+        this.timeInMs = timeInMs;
+        this.calculator = calculator;
+    }
+
+    public long runAndReturnSpeed() {
+        System.out.printf("Proposal A: %,d ms, %d threads, %d - %d loop size.\n",
+                timeInMs, threadCount, calculator.getLoopSizeMin(), calculator.getLoopSizeMax());
         long start = System.currentTimeMillis();
         Parent parent  = new Parent();
-        List<Thread> threadList = new ArrayList<>(THREAD_COUNT);
-        for (int i = 0; i < THREAD_COUNT; i++) {
-            Child child = new Child(parent, i);
+        List<Thread> threadList = new ArrayList<>(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+
+            Child child = new Child(parent, i, calculator);
             Thread thread = new Thread(child);
             threadList.add(thread);
             thread.start();
         }
-        parent.run();
+        int moveIndex = parent.runUntilMoveIndex();
         for (Thread thread : threadList) {
             try {
                 thread.join();
@@ -36,25 +51,28 @@ public class ProposalA {
                 throw new IllegalStateException("Join interrupted.", e);
             }
         }
-        System.out.printf("Duration (%,d ms).\n", (System.currentTimeMillis() - start));
+        long duration = System.currentTimeMillis() - start;
+        long speed = moveIndex * 1000 / duration;
+        System.out.printf("  Duration (%,d ms), speed (%,d/second).\n", duration, speed);
+        return speed;
     }
 
-    static class Parent implements Runnable {
+    class Parent {
 
-        public static final int BUFFER_SIZE = THREAD_COUNT * 3;
+        public final int bufferSize = threadCount * 3;
 
-        private BlockingQueue<Wrapper> moveQueue = new ArrayBlockingQueue<>(BUFFER_SIZE);
-        private WrapperQueue responseQueue = new WrapperQueue(BUFFER_SIZE);
+        private BlockingQueue<Wrapper> moveQueue = new ArrayBlockingQueue<>(bufferSize);
+        private WrapperQueue responseQueue = new WrapperQueue(bufferSize);
 
         private Random random = new Random(37);
 
         public Parent() {
         }
 
-        public void run() {
+        public int runUntilMoveIndex() {
             long start = System.currentTimeMillis();
             int moveIndex = 0;
-            for (int i = 0; i < BUFFER_SIZE; i++) {
+            for (int i = 0; i < bufferSize; i++) {
                 int move = random.nextInt(1000);
                 moveQueue.add(new Wrapper(moveIndex, Integer.toString(move)));
                 moveIndex++;
@@ -70,7 +88,7 @@ public class ProposalA {
                 int score = Integer.parseInt(wrapper.move);
                 if (moveIndex % PULSE_FREQUENCY == 0) {
                     trackRecord.append(score);
-                    if (System.currentTimeMillis() >= start + TIME_IN_MS) {
+                    if (System.currentTimeMillis() >= start + timeInMs) {
                         // Winner winner chicken dinner
                         break;
                     }
@@ -79,24 +97,25 @@ public class ProposalA {
                 moveQueue.add(new Wrapper(moveIndex, Integer.toString(move)));
                 moveIndex++;
             }
-            for (int i = 0; i < THREAD_COUNT; i++) {
+            for (int i = 0; i < threadCount; i++) {
                 moveQueue.add(new Wrapper(-1, "stop"));
             }
-            long duration = System.currentTimeMillis() - start;
-            System.out.println("Track record: " + trackRecord);
-            System.out.printf("Duration (%,d ms), speed (%,d/second).\n", duration, moveIndex * 1000 / duration);
+            System.out.println("  Track record: " + trackRecord);
+            return moveIndex;
         }
     }
 
-    static class Child implements Runnable {
+    class Child implements Runnable {
 
         private Parent parent;
         private int index;
+        private Calculator calculator;
         private Random random;
 
-        public Child(Parent parent, int index) {
+        public Child(Parent parent, int index, Calculator calculator) {
             this.parent = parent;
             this.index = index;
+            this.calculator = calculator;
             random = new Random(index);
         }
 
@@ -112,7 +131,7 @@ public class ProposalA {
                     return;
                 }
                 int move = Integer.parseInt(wrapper.move);
-                int response = Calculator.calculateScore(random, move) % 10;
+                int response = calculator.calculateScore(random, move) % 10;
                 try {
                     parent.responseQueue.put(new Wrapper(wrapper.moveIndex, Integer.toString(response)));
                 } catch (InterruptedException e) {
