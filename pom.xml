@@ -17,6 +17,18 @@
             <target>8</target>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <configuration>
+            <mainClass>be.ge0ffrey.mysandbox.multithreadedsolving.ProposalABBenchmark</mainClass>
+            <arguments>
+              <argument>-Xms256m</argument>
+              <argument>-Xmx1536m</argument>
+              <argument>-server</argument>
+            </arguments>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
