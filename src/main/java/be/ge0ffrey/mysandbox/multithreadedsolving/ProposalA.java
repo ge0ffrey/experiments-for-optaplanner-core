@@ -10,6 +10,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class ProposalA {
 
+    // TODO try 4, 8, 16, 32, 64
     public static final int THREAD_COUNT = 4;
 
     public static final int TIME_IN_MS = 20_000;
@@ -111,7 +112,7 @@ public class ProposalA {
                     return;
                 }
                 int move = Integer.parseInt(wrapper.move);
-                int response = (random.nextInt(100) + Calculator.calculateScore(move)) % 10;
+                int response = Calculator.calculateScore(random, move) % 10;
                 try {
                     parent.responseQueue.put(new Wrapper(wrapper.moveIndex, Integer.toString(response)));
                 } catch (InterruptedException e) {

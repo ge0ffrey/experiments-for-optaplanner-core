@@ -116,7 +116,7 @@ public class ProposalB {
                     return;
                 }
                 int move = Integer.parseInt(moveString);
-                int response = (random.nextInt(100) + Calculator.calculateScore(move)) % 10;
+                int response = Calculator.calculateScore(random, move) % 10;
                 try {
                     responseQueue.put(Integer.toString(response));
                 } catch (InterruptedException e) {
