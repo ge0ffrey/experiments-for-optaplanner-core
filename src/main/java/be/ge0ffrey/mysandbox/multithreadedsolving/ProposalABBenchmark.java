@@ -13,7 +13,7 @@ public class ProposalABBenchmark {
             {30_000, 3_000_000}};
 
     public static void main(String[] args) {
-        StringBuilder result = new StringBuilder("threadCount,loopSizeMin,loopSizeMax,speedA, speed B");
+        StringBuilder result = new StringBuilder("threadCount,loopSizeMin,loopSizeMax,speedA, speed B\n");
         for (int threadCount : THREAD_COUNTS) {
             for (int[] loopSize : LOOP_SIZES) {
                 Calculator calculator = new Calculator(loopSize[0], loopSize[1]);
