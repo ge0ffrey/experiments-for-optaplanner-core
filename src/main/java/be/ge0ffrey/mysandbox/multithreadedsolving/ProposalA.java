@@ -59,7 +59,7 @@ public class ProposalA {
 
     class Parent {
 
-        public final int bufferSize = threadCount * 3;
+        public final int bufferSize = threadCount * 30;
 
         private BlockingQueue<Wrapper> moveQueue = new ArrayBlockingQueue<>(bufferSize);
         private WrapperQueue responseQueue = new WrapperQueue(bufferSize);

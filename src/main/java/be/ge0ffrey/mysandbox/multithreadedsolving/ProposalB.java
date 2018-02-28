@@ -58,7 +58,7 @@ public class ProposalB {
 
     class Parent {
 
-        public final int bufferSize = threadCount * 3;
+        public final int bufferSize = threadCount * 30;
 
         private Random random = new Random(37);
 
