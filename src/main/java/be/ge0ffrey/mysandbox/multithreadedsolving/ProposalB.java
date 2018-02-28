@@ -8,6 +8,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class ProposalB {
 
+    private static final int BUFFER_MULTIPLICATION = 30;
     private static final int PULSE_FREQUENCY = 10_000;
 
     public static void main(String[] args) {
@@ -58,7 +59,7 @@ public class ProposalB {
 
     class Parent {
 
-        public final int bufferSize = threadCount * 30;
+        public final int bufferSize = threadCount * BUFFER_MULTIPLICATION;
 
         private Random random = new Random(37);
 
@@ -112,8 +113,8 @@ public class ProposalB {
 
     class Child implements Runnable {
 
-        private BlockingQueue<String> moveQueue = new ArrayBlockingQueue<>(3);
-        private BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(3);
+        private BlockingQueue<String> moveQueue = new ArrayBlockingQueue<>(BUFFER_MULTIPLICATION);
+        private BlockingQueue<String> responseQueue = new ArrayBlockingQueue<>(BUFFER_MULTIPLICATION);
 
         private Parent parent;
         private int index;

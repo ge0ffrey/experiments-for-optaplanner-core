@@ -10,7 +10,8 @@ import java.util.concurrent.BlockingQueue;
 
 public class ProposalA {
 
-    public static final int PULSE_FREQUENCY = 10_000;
+    private static final int BUFFER_MULTIPLICATION = 30;
+    private static final int PULSE_FREQUENCY = 10_000;
 
     public static void main(String[] args) {
         new ProposalA().runAndReturnSpeed();
@@ -59,7 +60,7 @@ public class ProposalA {
 
     class Parent {
 
-        public final int bufferSize = threadCount * 30;
+        public final int bufferSize = threadCount * BUFFER_MULTIPLICATION;
 
         private BlockingQueue<Wrapper> moveQueue = new ArrayBlockingQueue<>(bufferSize);
         private WrapperQueue responseQueue = new WrapperQueue(bufferSize);
